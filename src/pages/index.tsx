@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import { motion, useMotionValue, Variants, animate } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, useMotionValue, Variants, animate, MotionProps, EventInfo } from 'framer-motion'
 
 export default function Home() {
   const [sequence, setSequence] = useState('end') // Change the initial value to 'end'
   const [isHovering, setIsHovering] = useState(false)
 
-  const [buttons, setButtons] = useState<{ [key: string]: boolean }>({
+  interface ButtonState {
+    [key: string]: boolean
+  }
+
+  const [buttons, setButtons] = useState<ButtonState>({
     '1': false,
     '2': false,
     '3': false,
@@ -24,12 +28,13 @@ export default function Home() {
 
 
 */
-  async function handleHoverStart(e) {
-    const buttonId = e.target.id
-    if (!buttons[e.target.id]) {
-      setButtons({ ...buttons, [e.target.id]: true })
-      const newButtonsState = Object.keys(buttons).reduce((acc, key) => {
-        acc[key] = key === buttonId ? true : false
+
+  function handleHoverStart(event: MouseEvent, info: EventInfo) {
+    const buttonId: string = (event.target as HTMLElement).id
+    if (!buttons[buttonId]) {
+      setButtons({ ...buttons, [buttonId]: true })
+      const newButtonsState = Object.keys(buttons).reduce((acc: ButtonState, key: string) => {
+        acc[String(key) as keyof ButtonState] = key === buttonId ? true : false
         return acc
       }, {})
 
@@ -38,13 +43,13 @@ export default function Home() {
     }
   }
 
-  async function handleHoverEnd(e) {
-    const buttonId = e.target.id
-    if (buttons[e.target.id]) {
-      setButtons({ ...buttons, [e.target.id]: false })
+  function handleHoverEnd(event: MouseEvent, info: EventInfo) {
+    const buttonId: string = (event.target as HTMLElement).id
+    if (buttons[buttonId]) {
+      setButtons({ ...buttons, [buttonId]: false })
       // Create a new object with all button states set to false,
       // except for the selected button, which will keep its current state
-      const newButtonsState = Object.keys(buttons).reduce((acc, key) => {
+      const newButtonsState = Object.keys(buttons).reduce((acc: ButtonState, key) => {
         acc[key] = false
         return acc
       }, {})
@@ -53,7 +58,6 @@ export default function Home() {
       setButtons(newButtonsState)
     }
   }
-
   console.log(buttons)
 
   const variants: Variants = {
@@ -70,7 +74,10 @@ export default function Home() {
 
   const x = useMotionValue(0)
 
-  function AnimatedButton({ id }) {
+  interface IAnimatedButton {
+    id: string
+  }
+  function AnimatedButton({ id }: IAnimatedButton) {
     const isActive = buttons[id]
     return (
       <motion.button
@@ -78,8 +85,8 @@ export default function Home() {
         id={id}
         whileHover='hover'
         initial={!isActive && 'inactive'} // Change animation based on the button state
-        onHoverStart={(e) => handleHoverStart(e)}
-        onHoverEnd={(e) => handleHoverEnd(e)}
+        onHoverStart={(e, info) => handleHoverStart(e, info)}
+        onHoverEnd={(e, info) => handleHoverEnd(e, info)}
         className='rounded-xl text-blue-400 bg-orange-300 p-10 text-5xl flex flex-col justify-center items-center h-100'
       >
         Animate Me
